@@ -86,7 +86,10 @@ module.exports = [
                 ctx.reqBody = reqBody
             } else if (contentType.indexOf('application/json') > -1) {
                 //json
+                console.log(buffer.toString())
+
                 ctx.reqBody = JSON.parse(buffer.toString())
+                console.log(ctx.reqBody)
             } else if (contentType.indexOf('multipart/form-data') > -1) {
                 //multipart form data
                 const boundary = contentType.slice(contentType.indexOf('boundary=') + 9)

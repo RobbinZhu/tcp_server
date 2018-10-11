@@ -157,7 +157,7 @@ class SocketRequest {
                         this.requestState = 20
                         break
                     }
-                    this.error('parser.end_line_char_error')
+                    return this.error('parser.end_line_char_error')
                     break
                 case 20: //END_HEADER_LINE
                     if (byte == 13) {
