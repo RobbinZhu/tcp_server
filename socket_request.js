@@ -175,7 +175,7 @@ class SocketRequest {
                             this.requestState = 200 //this.headerMap.upgrade ? 200 : 100
                             await this.handleRequestHeaders()
                             if (this.webRequest) {
-                                index = await this.webRequest.parse(data, index)
+                                index = await this.webRequest.parse(data, index + 1)
                             }
                             break
                         }

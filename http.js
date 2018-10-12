@@ -35,7 +35,6 @@ class HTTP {
             await this.addContext(this.bodyBytes)
             return index
         }
-        index++
         const total = data.length
         while (index < total) {
             const byte = data[index]
