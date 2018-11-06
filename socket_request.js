@@ -1,6 +1,7 @@
 // const WebSocket = require('./websocket')
 const HTTP = require('./http')
 const ServerError = require('./server_error')
+const debug = util.debuglog('fast_tcp_server')
 
 const START_GET_LINE = 0
 
@@ -43,13 +44,13 @@ class SocketRequest {
                 await this.parse(data)
                     // console.log('parsedsuccess')
             }).catch((e) => {
-                console.log('inner error', e)
+                debug('inner error', e)
                 if (e.code && e.code < 100) {
-                    console.log('crash error')
+                    debug('crash error')
                     this.remove()
                 } else {
                     this.webRequest && this.webRequest.handleError(e)
-                    console.log('not crash error')
+                    debug('not crash error')
                 }
             })
         }
@@ -62,7 +63,7 @@ class SocketRequest {
         return this
     }
     resetRequestState() {
-        console.log('reset requestState', this.requestLine)
+        debug('reset requestState', this.requestLine)
         this.requestLine = null
         this.requestState = 0
         this.requestLineBytes = []
@@ -83,7 +84,7 @@ class SocketRequest {
         if (this.socket) {
             this.socket.removeAllListeners()
             if (!this.socket.destroyed) {
-                console.log('destroy socket', this.socket.realSocketIndex)
+                debug('destroy socket', this.socket.realSocketIndex)
                 this.socket.destroy()
             }
         }
@@ -209,7 +210,7 @@ class SocketRequest {
                 path,
                 version
             }
-            console.log('request line got', method, path, version)
+            debug('request line got', method, path, version)
             return true
         }
         return false

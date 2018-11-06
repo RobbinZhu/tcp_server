@@ -1,5 +1,6 @@
 const HTTPContext = require('./http_context')
 const HTTPChunk = require('./http_chunk')
+const debug = util.debuglog('fast_tcp_server')
 class HTTP {
     constructor() {}
     init(socketRequest) {
@@ -124,7 +125,7 @@ class HTTP {
         return index
     }
     remove() {
-        console.log('remove http')
+        debug('remove http')
         if (this.bodyBytes) {
             this.bodyBytes.remove()
         }
@@ -141,7 +142,7 @@ class HTTP {
     }
     handleError() {}
     end() {
-        console.log('end', this.path)
+        debug('end', this.path)
         this.socketRequest.resetRequestState()
         if ((this.headerMap.connection || '').toString().toLowerCase() == 'close') {
             this.socketRequest.remove()

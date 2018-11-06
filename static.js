@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const mime = require('mime')
+const debug = util.debuglog('fast_tcp_server')
 
 function Static(config) {
     config = config || {}
@@ -10,7 +11,7 @@ function Static(config) {
         config.root = '/'
     }
     return async function(ctx, next) {
-        console.log('try to static', ctx.url)
+        debug('try to static', ctx.url)
         switch (ctx.method) {
             case 'get':
             case 'head':
