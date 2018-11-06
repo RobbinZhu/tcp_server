@@ -24,7 +24,6 @@ const ErrorCode = {
 class SocketRequest {
     constructor() {}
     init(socket, server) {
-        socket.setKeepAlive(true, 30000)
         this.socket = socket
         this.tcpServer = server
         this.requestState = 0

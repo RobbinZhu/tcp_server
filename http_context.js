@@ -84,6 +84,8 @@ class HTTPContext {
         this._http = http
         this.url = http.path
         this.method = http.method
+        this.keepaLiveTimeout = HTTPContext.keepaLiveTimeout
+        this.keepAliveMaxRequests = HTTPContext.keepAliveMaxRequests
 
         this.reqHeader = http.headerMap
         this.reqBody = {}
@@ -187,7 +189,7 @@ class HTTPContext {
         const bytes = []
         bytes.push('HTTP/1.1 ' + this.statusCode + ' ' + this.statusMessage)
         this.setResponseHeader('connection', 'keep-alive')
-        this.setResponseHeader('keep-alive', 'timeout=20, max=100')
+        this.setResponseHeader('keep-alive', 'timeout=' + this.keepaLiveTimeout + ', max=' + this.keepAliveMaxRequests)
         if (this.isChunkedStream) {
             this.removeResponseHeader('content-length')
         } else {
@@ -246,10 +248,15 @@ class HTTPContext {
     }
 }
 HTTPContext.MAX_CACHE_NUM = 1000
+HTTPContext.keepaLiveTimeout = 20
+HTTPContext.keepAliveMaxRequests = 100
+
 const cache = []
+
 HTTPContext.get = function(...args) {
     return (cache.length ? cache.pop() : new HTTPContext).init(...args)
 }
+
 HTTPContext.collect = function(ctx) {
     if (cache.length < this.MAX_CACHE_NUM) {
         cache.push(ctx)
