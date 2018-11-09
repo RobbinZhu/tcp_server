@@ -1,4 +1,4 @@
-// const WebSocket = require('./websocket')
+const util = require('util')
 const HTTP = require('./http')
 const ServerError = require('./server_error')
 const debug = util.debuglog('fast_tcp_server')

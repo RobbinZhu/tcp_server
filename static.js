@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
+const util = require('util')
 const mime = require('mime')
+
 const debug = util.debuglog('fast_tcp_server')
 
 function Static(config) {

@@ -1,5 +1,7 @@
+const util = require('util')
 const HTTPContext = require('./http_context')
 const HTTPChunk = require('./http_chunk')
+
 const debug = util.debuglog('fast_tcp_server')
 class HTTP {
     constructor() {}
@@ -42,20 +44,20 @@ class HTTP {
             switch (this.state) {
                 case 200:
                     if ((this.bodyReadLength + data.length) <= this.bodyLength) {
-                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index)//, index + data.length)
+                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index) //, index + data.length)
                         this.bodyReadLength += data.length
                         index += data.length
                     } else {
                         //buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])
-                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index)//, index + this.bodyLength - this.bodyReadLength)
-                        
+                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index) //, index + this.bodyLength - this.bodyReadLength)
+
                         index += this.bodyLength - this.bodyReadLength
                         this.bodyReadLength = this.bodyLength
                     }
                     if (this.bodyReadLength == this.bodyLength) {
                         await this.addContext(this.bodyBytes)
                         this.bodyReadLength = 0
-                        // console.log(this.bodyBytes.buffer.toString())
+                            // console.log(this.bodyBytes.buffer.toString())
                         return index
                     }
                     break
