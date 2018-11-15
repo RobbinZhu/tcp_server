@@ -139,15 +139,11 @@ class HTTPContext {
                 await this.write()
                 stream.removeListener('data', ondata)
                 stream.removeListener('end', onend)
-                stream = null
                 resolve()
             }
-            try {
-                stream.on('data', ondata)
-                stream.on('end', onend)
-            } catch (e) {
 
-            }
+            stream.on('data', ondata)
+            stream.on('end', onend)
         })
     }
     async send() {
