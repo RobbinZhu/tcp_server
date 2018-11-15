@@ -63,19 +63,27 @@ const StatusMessage = {
 
 function writePromise(socket, data) {
     return new Promise(function(resolve, reject) {
-        const timeout = setTimeout(reject, 5000)
+        const timeout = setTimeout(resolve, 5000)
 
         function solve() {
             clearTimeout(timeout)
             resolve()
         }
-        if (!socket.write(data)) {
+        let writeSuccess
+        try {
+            writeSuccess = socket.write(data)
+        } catch (e) {
+            solve()
+            return
+        }
+        if (!writeSuccess) {
             socket.once('drain', solve)
         } else {
             solve()
         }
     })
 }
+
 class HTTPContext {
     constructor() {}
     init(http, chunk) {

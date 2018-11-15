@@ -131,7 +131,9 @@ class HTTP {
         if (this.bodyBytes) {
             this.bodyBytes.remove()
         }
-        this.socketRequest =
+        this.path =
+            this.version =
+            this.socketRequest =
             this.headers =
             this.headerMap =
             this.bodyBytes =
@@ -145,6 +147,9 @@ class HTTP {
     handleError() {}
     end() {
         debug('end', this.path)
+        if (!this.socketRequest) {
+            return
+        }
         this.socketRequest.resetRequestState()
         if ((this.headerMap.connection || '').toString().toLowerCase() == 'close') {
             this.socketRequest.remove()
