@@ -1,6 +1,6 @@
 {
     "name": "fast_tcp_server",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "TCP Server",
     "main": "index.js",
     "scripts": {},

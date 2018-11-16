@@ -63,23 +63,21 @@ const StatusMessage = {
 
 function writePromise(socket, data) {
     return new Promise(function(resolve, reject) {
-        const timeout = setTimeout(resolve, 5000)
+        const timeout = setTimeout(solve, 5000)
 
         function solve() {
             clearTimeout(timeout)
             resolve()
         }
-        let writeSuccess
-        try {
-            writeSuccess = socket.write(data)
-        } catch (e) {
+
+        if (socket.destroyed) {
             solve()
-            return
-        }
-        if (!writeSuccess) {
-            socket.once('drain', solve)
         } else {
-            solve()
+            if (!socket.write(data)) {
+                socket.once('drain', solve)
+            } else {
+                solve()
+            }
         }
     })
 }
@@ -149,7 +147,6 @@ class HTTPContext {
                 stream.removeListener('end', onend)
                 resolve()
             }
-
             stream.on('data', ondata)
             stream.on('end', onend)
         })
@@ -158,7 +155,8 @@ class HTTPContext {
         if (this.method == 'head' || this.method == 'options') {
             this.body = undefined
             this.isChunkedStream = false
-            return this.write()
+            await this.write()
+            return
         }
 
         if (!this.getResponseHeader('content-type')) {
@@ -166,9 +164,11 @@ class HTTPContext {
         }
 
         if (this.isChunkedStream) {
-            return this.writeStream(this.body)
+            await this.writeStream(this.body)
+            return
         } else {
-            return this.write(this.body)
+            await this.write(this.body)
+            return
         }
     }
     async write(data) {
@@ -184,29 +184,30 @@ class HTTPContext {
             length = Buffer.byteLength(data)
             this.setResponseHeader('content-type', 'application/json')
         }
-        if (!this.isResHeaderSent) {
-            await this._writeHeader(length)
-        }
+
+        await this._writeHeader(length)
         await this._write(this._socket, data, length)
     }
     async _writeHeader(length) {
-        const bytes = []
-        bytes.push('HTTP/1.1 ' + this.statusCode + ' ' + this.statusMessage)
-        this.setResponseHeader('connection', 'keep-alive')
-        this.setResponseHeader('keep-alive', 'timeout=' + this.keepaLiveTimeout + ', max=' + this.keepAliveMaxRequests)
-        if (this.isChunkedStream) {
-            this.removeResponseHeader('content-length')
-        } else {
-            this.removeResponseHeader('transfer-encoding')
-            this.setResponseHeader('content-length', length)
-        }
-        for (let [key, value] of this.resHeader) {
-            bytes.push((key == 'set-cookie' ? '' : (key + ': ')) + value.toString())
-        }
-        bytes.push('\r\n')
-        await writePromise(this._socket, bytes.join('\r\n'))
+        if (!this.isResHeaderSent) {
+            const bytes = []
+            bytes.push('HTTP/1.1 ' + this.statusCode + ' ' + this.statusMessage)
+            this.setResponseHeader('connection', 'keep-alive')
+            this.setResponseHeader('keep-alive', 'timeout=' + this.keepaLiveTimeout + ', max=' + this.keepAliveMaxRequests)
+            if (this.isChunkedStream) {
+                this.removeResponseHeader('content-length')
+            } else {
+                this.removeResponseHeader('transfer-encoding')
+                this.setResponseHeader('content-length', length)
+            }
+            for (let [key, value] of this.resHeader) {
+                bytes.push((key == 'set-cookie' ? '' : (key + ': ')) + value.toString())
+            }
+            bytes.push('\r\n')
+            await writePromise(this._socket, bytes.join('\r\n'))
 
-        this.isResHeaderSent = true
+            this.isResHeaderSent = true
+        }
     }
     async _write(socket, data, length) {
         if (this.isChunkedStream) {
