@@ -1,0 +1,14 @@
+{
+    "name": "fast_tcp_server",
+    "version": "0.0.9",
+    "description": "TCP Server",
+    "main": "index.js",
+    "scripts": {},
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "mime": "^2.3.1",
+        "streamsearch": "^0.1.2"
+    },
+    "devDependencies": {}
+}
