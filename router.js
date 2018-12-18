@@ -1,7 +1,6 @@
 const routerPart = /:[0-9a-zA-Z_-]+|[0-9a-zA-Z_-]+|\+|\*/ig
 
 function format(text) {
-    // console.log('input',text)
     switch (text[0]) {
         case '*':
             return {
@@ -49,8 +48,8 @@ class Path {
             allMatches.push(matches)
             allNames.push(names)
         })
-        this.regex = new RegExp('^\\\/' + [].concat(...allMatches).join('\\\/') + '$')
-        this.params = [].concat(...allNames)
+        this.regex = new RegExp('^\\\/' + allMatches.join('\\\/') + '$')
+        this.params = allNames
         this.path = formatPath
     }
 }
