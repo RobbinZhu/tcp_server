@@ -200,9 +200,7 @@ class SocketRequest {
         throw new ServerError(code || ErrorCode[msg], msg)
     }
     async generateRequestLine(requestLineBytes) {
-        const line = requestLineBytes.map(function(number) {
-            return String.fromCharCode(number)
-        }).join('').split(' ')
+        const line = requestLineBytes.map(String.fromCharCode).join('').split(' ')
         if (line.length == 3) {
             const [method, path, version] = line
             this.requestLine = {
@@ -220,9 +218,7 @@ class SocketRequest {
 
         this.headers = headers
             .map(function(header) {
-                return header.map(function(code) {
-                    return String.fromCharCode(code)
-                }).join('')
+                return header.map(String.fromCharCode).join('')
             })
         this.headers.forEach(function(header) {
             const keyIndex = header.indexOf(': ')
@@ -232,7 +228,7 @@ class SocketRequest {
         })
 
         this.headerMap = headerMap
-            // console.log('headers', this.headers.length)
+        // console.log('headers', this.headers.length)
         return true
     }
 }

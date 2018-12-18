@@ -44,12 +44,12 @@ class HTTP {
             switch (this.state) {
                 case 200:
                     if ((this.bodyReadLength + data.length) <= this.bodyLength) {
-                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index) //, index + data.length)
+                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index)
                         this.bodyReadLength += data.length
                         index += data.length
                     } else {
                         //buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])
-                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index) //, index + this.bodyLength - this.bodyReadLength)
+                        data.copy(this.bodyBytes.buffer, this.bodyReadLength, index)
 
                         index += this.bodyLength - this.bodyReadLength
                         this.bodyReadLength = this.bodyLength
@@ -57,7 +57,6 @@ class HTTP {
                     if (this.bodyReadLength == this.bodyLength) {
                         await this.addContext(this.bodyBytes)
                         this.bodyReadLength = 0
-                            // console.log(this.bodyBytes.buffer.toString())
                         return index
                     }
                     break
@@ -121,7 +120,6 @@ class HTTP {
                     break
                 default:
                     return index
-                        // break
             }
         }
         return index

@@ -17,7 +17,7 @@ class HttpChunk {
         HttpChunk.collect(this)
     }
     integrate(length) {
-        const chunk = HttpChunk.get(length) //Buffer.alloc(length)
+        const chunk = HttpChunk.get(length)
         let link = this
         let index = length
         while (link) {
