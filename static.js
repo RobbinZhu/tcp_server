@@ -23,67 +23,72 @@ function Static(config) {
                 await next()
                 return
         }
-        const parsedUrl = ctx.parsedUrl
-        const normalized = path.normalize(parsedUrl.pathname)
-        if (normalized == '/') {
-            await next()
-            return
-        }
-        if (normalized != parsedUrl.pathname) {
-            ctx.setStatus(301)
-            ctx.setResponseHeader('Location', normalized + parsedUrl.search)
-            return
-        }
-        const filePath = path.join(process.cwd(), config.root, normalized)
-        const ext = path.extname(filePath)
-        const fileType = ext ? ext.slice(1) : 'binary'
-        let stat = await new Promise(function(resolve, reject) {
-            fs.stat(filePath, function(e, stat) {
-                resolve(e ? null : stat)
-            })
-        })
-        if (!stat) {
-            if (!config.next) {
-                ctx.setStatus(404, 'Not Found')
-                ctx.body = 'Not Found'
+
+        const search = ctx.parsedUrl.search
+
+        async function serve(pathname) {
+            const normalized = path.normalize(pathname)
+            if (normalized != pathname) {
+                ctx.setStatus(301)
+                ctx.setResponseHeader('Location', normalized + search)
                 return
             }
-            await next()
-            return
-        }
+            const filePath = path.join(process.cwd(), config.root, normalized)
+            let stat = await new Promise(function(resolve, reject) {
+                fs.stat(filePath, function(e, stat) {
+                    resolve(e ? null : stat)
+                })
+            })
+            if (!stat) {
+                if (!config.next) {
+                    ctx.setStatus(404, 'Not Found')
+                    ctx.body = 'Not Found'
+                    return
+                }
+                await next()
+                return
+            }
 
-        if (stat.isDirectory()) {
-            ctx.setStatus(401, 'Directory not allowed to be show')
-            ctx.body = 'Directory not allowed to be show'
-        } else {
-            const ifNoneMatch = ctx.reqHeader['if-none-match']
-            const lastModified = stat.mtime.getTime() + ''
-            ctx.setResponseHeader('Last-Modified', stat.mtime.toUTCString())
-            ctx.setResponseHeader('Cache-Control', 'public, max-age=' + maxage + (immutable ? ',immutable' : ''))
-                // ctx.setResponseHeader('')
-            ctx.setResponseHeader('access-control-allow-origin', '*')
-            ctx.setResponseHeader('access-control-allow-credentials', '*')
-            ctx.setResponseHeader('access-control-expose-headers', '*')
-                // ctx.setResponseHeader('access-control-max-age', '')
-            ctx.setResponseHeader('access-control-allow-methods', '*')
-                // ctx.setResponseHeader('access-control-allow-headers', '')
-            if (ifNoneMatch == lastModified) {
-                ctx.setStatus(304, 'Not Modified')
-                ctx.body = ''
-            } else {
-                const contentType = mime.getType(fileType) || mime.getType('bin')
-                ctx.setResponseHeader('Content-Type', contentType)
-
-                if (!config.acceptRange || (contentType.indexOf('video') == -1)) {
-                    // ctx.setResponseHeader('Content-Length', stat.size)
-                    ctx.setResponseHeader('ETag', lastModified)
-                    ctx.setResponseHeader('Expires', new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString())
-                    ctx.setStreamBody(fs.createReadStream(filePath))
+            if (stat.isDirectory()) {
+                if (config.index) {
+                    await serve(pathname + config.index)
+                } else if (normalized == '/') {
+                    await next()
                 } else {
-                    handleRange(ctx, filePath, stat.size, config)
+                    ctx.setStatus(401, 'Directory not allowed to be show')
+                    ctx.body = 'Directory not allowed to be show'
+                }
+            } else {
+                const ext = path.extname(filePath)
+                const fileType = ext ? ext.slice(1) : 'binary'
+                const ifNoneMatch = ctx.reqHeader['if-none-match']
+                const lastModified = stat.mtime.getTime() + ''
+                ctx.setResponseHeader('Last-Modified', stat.mtime.toUTCString())
+                ctx.setResponseHeader('Cache-Control', `public, max-age=${maxage}${immutable ? ',immutable' : ''}`)
+
+                if (config.setHeaders) {
+                    config.setHeaders(ctx)
+                }
+                if (ifNoneMatch == lastModified) {
+                    ctx.setStatus(304, 'Not Modified')
+                    ctx.body = ''
+                } else {
+                    const contentType = mime.getType(fileType) || mime.getType('bin')
+                    ctx.setResponseHeader('Content-Type', contentType)
+
+                    if (!config.acceptRange || (contentType.indexOf('video') == -1)) {
+                        // ctx.setResponseHeader('Content-Length', stat.size)
+                        ctx.setResponseHeader('ETag', lastModified)
+                        ctx.setResponseHeader('Expires', new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString())
+                        ctx.setStreamBody(fs.createReadStream(filePath))
+                    } else {
+                        handleRange(ctx, filePath, stat.size, config)
+                    }
                 }
             }
         }
+
+        await serve(ctx.parsedUrl.pathname)
     }
 }
 
