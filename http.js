@@ -1,8 +1,9 @@
 const util = require('util')
 const HTTPContext = require('./http_context')
 const HTTPChunk = require('./http_chunk')
-
+const {parseByte} = require('./util')
 const debug = util.debuglog('fast_tcp_server')
+
 class HTTP {
     constructor() {}
     init(socketRequest) {
@@ -72,9 +73,7 @@ class HTTP {
                     index++
                     if (byte == 10) {
                         this.state = 302
-                        const chunkLength = parseInt(this.bodyLengthBytes.map(function(byte) {
-                            return String.fromCharCode(byte)
-                        }).join('').toString(), 16)
+                        const chunkLength = parseInt(this.bodyLengthBytes.map(parseByte).join('').toString(), 16)
                         this.bodyTotalLength += chunkLength
                         this.bodyLengthBytes.length = 0
                         if (chunkLength == 0) {

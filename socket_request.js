@@ -1,6 +1,7 @@
 const util = require('util')
 const HTTP = require('./http')
 const ServerError = require('./server_error')
+const {parseByte} = require('./util')
 const debug = util.debuglog('fast_tcp_server')
 
 const START_GET_LINE = 0
@@ -190,17 +191,14 @@ class SocketRequest {
         if ((this.headerMap.upgrade || '').toString().toLowerCase() == 'websocket') {
             // this.webRequest = WebSocket.get(this)
         } else {
-            // console.log('get request from webRequest')
-            // this.socket.end('HTTP/1.1 200 ok\r\nContent-Length:0\r\n\r\n')
             this.webRequest = HTTP.get(this)
-                // this.error('parser.not_support_protocol')
         }
     }
     error(msg, code) {
         throw new ServerError(code || ErrorCode[msg], msg)
     }
     async generateRequestLine(requestLineBytes) {
-        const line = requestLineBytes.map(String.fromCharCode).join('').split(' ')
+        const line = requestLineBytes.map(parseByte).join('').split(' ')
         if (line.length == 3) {
             const [method, path, version] = line
             this.requestLine = {
@@ -218,7 +216,7 @@ class SocketRequest {
 
         this.headers = headers
             .map(function(header) {
-                return header.map(String.fromCharCode).join('')
+                return header.map(parseByte).join('')
             })
         this.headers.forEach(function(header) {
             const keyIndex = header.indexOf(': ')
@@ -228,7 +226,6 @@ class SocketRequest {
         })
 
         this.headerMap = headerMap
-        // console.log('headers', this.headers.length)
         return true
     }
 }

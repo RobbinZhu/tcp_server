@@ -45,8 +45,8 @@ class Path {
                     names.push(formated.name)
                 }
             }
-            allMatches.push(matches)
-            allNames.push(names)
+            allMatches.push(...matches)
+            allNames.push(...names)
         })
         this.regex = new RegExp('^\\\/' + allMatches.join('\\\/') + '$')
         this.params = allNames
@@ -109,7 +109,6 @@ class Router {
                     }
                 }
             })
-            // console.log('handlers', ctx.url, handlers)
             await this.handlerRouter(ctx, handlers)
             await next()
         }
